@@ -3,6 +3,8 @@ from .operators import prod
 from numpy import array, float64, ndarray
 import numba
 
+from functools import reduce
+
 MAX_DIMS = 32
 
 
@@ -92,8 +94,28 @@ def shape_broadcast(shape1, shape2):
     Raises:
         IndexingError : if cannot broadcast
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError('Need to implement for Task 2.2')
+    if len(shape1) < len(shape2):
+        s1, s2 = shape1, shape2
+    else:
+        s1, s2 = shape2, shape1
+
+    s1 = [1] * (len(s2) - len(s1)) + list(s1)
+    s2 = list(s2)
+    assert(len(s1) == len(s2))
+
+    result = []
+    for i in range(len(s1)):
+        if s1[i] == s2[i]:
+            result.append(s1[i])
+            continue
+
+        if s1[i] == 1 or s2[i] == 1:
+            result.append(max(s1[i], s2[i]))
+            continue
+
+        raise IndexingError()
+
+    return tuple(result)
 
 
 def strides_from_shape(shape):
