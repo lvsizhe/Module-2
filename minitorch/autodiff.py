@@ -285,14 +285,17 @@ class FunctionBase:
         """
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
-        numbers = cls.backward(ctx, d_output)
-        assert len(numbers) == len(inputs)
+        derivs = cls.backward(ctx, d_output)
+        if not isinstance(derivs, tuple):
+            derivs = (derivs,)
 
-        result = []
-        for i, var in enumerate(inputs):
+        result = [] 
+        for var, deriv in zip(inputs, derivs):
             if is_constant(var):
                 continue
-            result.append((var, numbers[i])) 
+
+            deriv = var.expand(deriv)
+            result.append((var, deriv))
 
         return result
 
