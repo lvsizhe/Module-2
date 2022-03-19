@@ -229,19 +229,26 @@ def tensor_reduce(fn):
 
     def _reduce(out, out_shape, out_strides, a_storage, a_shape, a_strides, reduce_dim):
         assert(out_shape[reduce_dim] == 1)
+        assert(len(out_shape) == len(a_shape))
 
-        size_a = np.prod(a_shape)
+        size = np.prod(out_shape)
 
-        a_index = [0] * len(a_shape)
-        for i in range(size_a):
-            to_index(i, a_shape, a_index)
+        out_index = [0] * len(out_shape)
+        a_index = [0] * len(out_shape)
+        for i in range(size):
+            to_index(i, out_shape, out_index)
 
-            out_index = deepcopy(a_index)
-            out_index[reduce_dim] = 0
+            for j in range(len(a_shape)):
+                a_index[j] = out_index[j]
 
-            a_pos = index_to_position(a_index, a_strides)
-            out_pos = index_to_position(out_index, out_strides)
-            out[out_pos] = fn(out[out_pos], a_storage[a_pos])
+            for j in range(a_shape[reduce_dim]):
+                a_index[reduce_dim] = j
+
+                a_pos = index_to_position(a_index, a_strides)
+                if j == 0:
+                    out[i] = a_storage[a_pos]
+                else:
+                    out[i] = fn(out[i], a_storage[a_pos])
 
     return _reduce
 
